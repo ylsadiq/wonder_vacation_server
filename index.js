@@ -61,11 +61,23 @@ async function run() {
   // delete Order
   app.delete("/order/:id", async (req, res) => {
     const id = req.params.id;
-    console.log('getting specific ID DELETE', id);
     const query = { _id: ObjectId(id) };
     const result = await ordersCollection.deleteOne(query);
     res.json(result);
 });
+
+app.put("/order/:id", async (req, res) =>{
+  const id = req.params.id;
+  const payment = req.body;
+  const filter = {_id: ObjectId(id)};
+  const updateDoc = {
+    $set: {
+      payment: payment
+    },
+  };
+  const result = await ordersCollection.updateOne(filter, updateDoc)
+  res.json(result)
+})
 
 app.post("/create-payment-intent", async (req, res) => {
   const paymentInfo = req.body;
@@ -76,7 +88,6 @@ app.post("/create-payment-intent", async (req, res) => {
     amount: amount,
     payment_method_types: ['card']
   });
-console.log(paymentIntent);
   res.json({
     clientSecret: paymentIntent.client_secret
   });
