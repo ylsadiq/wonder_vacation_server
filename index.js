@@ -2,9 +2,17 @@ const express = require('express');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const ObjectId = require('mongodb').ObjectId
 const cors = require('cors');
+var admin = require("firebase-admin");;
 
 const app = express();
 const port = process.env.PORT || 5000;
+
+// Firebase admin initialization
+var serviceAccount = require("./first-firebase-authentic-df7ba-firebase-adminsdk-ga862-4a6ae3688a.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+})
 
 // middleware
 app.use(cors());
@@ -13,6 +21,18 @@ app.use(express.json())
 const uri = "mongodb+srv://wonder-vacation:J8oQ5IhmqMC6bGgs@cluster0.jbgbo.mongodb.net/?retryWrites=true&w=majority";
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 const stripe = require("stripe")('sk_test_51Jw4F4HOXxFLrNqIBuXM3R2iCOIn126Q09t07SUGJImydkHBPg6Uxyc9d8bWazIuD9266Ua0EQp7W23ezZVt3Pmi00lIDPjOGy');
+async function verifyToken(req, res, next){
+  if(req.headers?.authorization?.startsWith('Bearer ')){
+    const idToken = req.headers.authorization.split('Bearer ')[1];
+    try{
+      const decodeUser = await admin.auth().verifyIdToken(idToken)
+      req.decodeUserEmail = decodeUser.email
+    }catch{
+
+    }
+  }
+  next()
+}
 async function run() {
     try {
       await client.connect();
@@ -36,12 +56,17 @@ async function run() {
   })
     
   // GET Order APi
-  app.get('/order', async(req, res)=>{
+  app.get('/order', verifyToken, async(req, res)=>{
     const email = req.query.email;
-    const query = {email: email};
-    const cursor = ordersCollection.find({'data.email': email })
-    const order = await cursor.toArray()
-    res.json(order)
+    if(req.decodeUserEmail === email){
+      const query = {email: email};
+      const cursor = ordersCollection.find({'data.email': email })
+      const order = await cursor.toArray()
+      res.json(order)
+    }else{
+      res.status(401).json({massage: 'User Not Authorize'})
+    }
+    
   })
 
   // Packages Post
