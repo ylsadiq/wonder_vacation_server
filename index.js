@@ -2,9 +2,10 @@ const express = require('express');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const ObjectId = require('mongodb').ObjectId
 const cors = require('cors');
-var admin = require("firebase-admin");;
+const admin = require("firebase-admin");
 
 const app = express();
+require('dotenv').config()
 const port = process.env.PORT || 5000;
 
 // Firebase admin initialization
@@ -18,7 +19,7 @@ admin.initializeApp({
 app.use(cors());
 app.use(express.json())
 
-const uri = "mongodb+srv://wonder-vacation:J8oQ5IhmqMC6bGgs@cluster0.jbgbo.mongodb.net/?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jbgbo.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 const stripe = require("stripe")('sk_test_51Jw4F4HOXxFLrNqIBuXM3R2iCOIn126Q09t07SUGJImydkHBPg6Uxyc9d8bWazIuD9266Ua0EQp7W23ezZVt3Pmi00lIDPjOGy');
 async function verifyToken(req, res, next){
@@ -52,6 +53,12 @@ async function run() {
     const id = req.params.id;
     const query = {_id: ObjectId(id)};
     const package = await packagesCollection.findOne(query);
+    res.json(package)
+  })
+  // GET SINGLE product
+    app.get('/orders', async(req, res) =>{
+    const cursor = ordersCollection.find({});
+    const package = await cursor.toArray();
     res.json(package)
   })
     
