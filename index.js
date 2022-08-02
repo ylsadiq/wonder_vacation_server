@@ -55,7 +55,7 @@ async function run() {
     const package = await packagesCollection.findOne(query);
     res.json(package)
   })
-  // GET SINGLE product
+  // GET SINGLE package
     app.get('/orders', async(req, res) =>{
     const cursor = ordersCollection.find({});
     const package = await cursor.toArray();
@@ -88,10 +88,17 @@ async function run() {
     const result = await ordersCollection.insertOne(order);
     res.send(result)
   })
-
+   // ADD Packages POST API
+   app.post('/addPackage', async(req, res)=>{
+      const service = req.body;
+      // create a document to insert
+      const result = await packagesCollection.insertOne(service);
+      // console.log(result);
+      res.json(result)
+    });
 
   // delete Order
-  app.delete("/order/:id", async (req, res) => {
+  app.delete("/orders/:id", async (req, res) => {
     const id = req.params.id;
     const query = { _id: ObjectId(id) };
     const result = await ordersCollection.deleteOne(query);
