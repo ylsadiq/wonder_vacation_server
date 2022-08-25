@@ -74,12 +74,22 @@ async function run() {
     const query = {_id: ObjectId(id)};
     const package = await packagesCollection.findOne(query);
     res.json(package)
-  })
+  });
   // GET Orders API
     app.get('/orders', async(req, res) =>{
+    const email = req.query;
     const cursor = ordersCollection.find({});
     const package = await cursor.toArray();
     res.json(package)
+  });
+
+  // GET Single Orders API
+  app.get('/orders/:id', async(req, res) =>{
+    const id = req.params.id;
+    const query = {_id: ObjectId(id)};
+    const result = await ordersCollection.findOne(query);
+    console.log(result);
+    res.json(result)
   })
     
   // GET Order API Email
@@ -93,15 +103,11 @@ async function run() {
 
   //GET  My order
 app.get("/orders/:email", async (req, res) => {
-  // const decodeUserEmail = req.decodeUser;
   const email = req.params.email;
-  const result = await ordersCollection.find({'data.email': email })
+  const query = {email: email};
+  const result = await ordersCollection.find(query)
   .toArray();
   res.send(result);
-  // if(email === decodeUserEmail){
-  // }else{
-  //   res.status(403).send({message: 'Forbidden Access'})
-  // }
 })
 // GET Users 
   app.get('/users', async (req, res)=>{
@@ -182,7 +188,6 @@ app.post("/users", async (req, res) => {
 
     app.put('/users', async(req, res) =>{
       const email = req.params.email;
-      console.log(email);
       const user = req.body;
       const filter = {email:email};
       const options = {upsert: true};
@@ -236,9 +241,7 @@ app.post("/create-payment-intent", async (req, res) => {
     amount: amount,
     payment_method_types: ['card']
   });
-  res.json({
-    clientSecret: paymentIntent.client_secret
-  });
+  res.json({clientSecret: paymentIntent.client_secret});
 });
 
 } 
