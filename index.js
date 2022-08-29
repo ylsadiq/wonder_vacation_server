@@ -22,7 +22,7 @@ app.use(express.json())
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jbgbo.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-const stripe = require("stripe")('sk_test_51Jw4F4HOXxFLrNqIBuXM3R2iCOIn126Q09t07SUGJImydkHBPg6Uxyc9d8bWazIuD9266Ua0EQp7W23ezZVt3Pmi00lIDPjOGy');
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 async function verifyToken(req, res, next){
   const authHeader = req?.headers?.authorization
@@ -84,11 +84,10 @@ async function run() {
   });
 
   // GET Single Orders API
-  app.get('/orders/:id', async(req, res) =>{
+  app.get('/paymentOrders/:id', async(req, res) =>{
     const id = req.params.id;
     const query = {_id: ObjectId(id)};
     const result = await ordersCollection.findOne(query);
-    console.log(result);
     res.json(result)
   })
     
@@ -105,8 +104,7 @@ async function run() {
 app.get("/orders/:email", async (req, res) => {
   const email = req.params.email;
   const query = {email: email};
-  const result = await ordersCollection.find(query)
-  .toArray();
+  const result = await ordersCollection.find(query).toArray();
   res.send(result);
 })
 // GET Users 
@@ -199,7 +197,6 @@ app.post("/users", async (req, res) => {
     // Make An Admin
     app.put("/users/makeadmin", async (req, res) => {
       const user = req.body;
-      console.log('put', user);
       const filter = {email: user.email};
       const updateDoc = { $set: {role: 'admin'}};
       const result = await usersCollection.updateOne(filter, updateDoc);
