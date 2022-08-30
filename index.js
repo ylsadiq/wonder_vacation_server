@@ -59,7 +59,8 @@ async function run() {
       const database = client.db("wonder-vacation");
       const packagesCollection = database.collection("packages");
       const ordersCollection = database.collection("order");
-      const usersCollection = database.collection('user')
+      const usersCollection = database.collection('user');
+      const transactionCollection = database.collection('payment')
 
   // GET Packages API
     app.get('/packages', async(req, res) =>{
@@ -89,6 +90,22 @@ async function run() {
     const query = {_id: ObjectId(id)};
     const result = await ordersCollection.findOne(query);
     res.json(result)
+  })
+
+  app.patch('/paymentOrders/:id', async(req, res) =>{
+    const id = req.params.id;
+    const payment = req.body;
+    const filter = {_id: ObjectId(id)};
+    const updateDoc = {
+      $set: {
+        paid: true,
+        transactionId: payment.transactionId
+      }
+    }
+    const result = await transactionCollection.insertOne(payment)
+    const updatedBooking = await ordersCollection.updateOne(filter, updateDoc);
+    res.send(updatedBooking);
+
   })
     
   // GET Order API Email
