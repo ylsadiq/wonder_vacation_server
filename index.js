@@ -2,19 +2,11 @@ const express = require('express');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const ObjectId = require('mongodb').ObjectId
 const cors = require('cors');
-var jwt = require('jsonwebtoken');
-const admin = require("firebase-admin");
+// var jwt = require('jsonwebtoken');
 
 const app = express();
 require('dotenv').config()
 const port = process.env.PORT || 5000;
-
-// Firebase admin initialization
-var serviceAccount = require("./first-firebase-authentic-df7ba-firebase-adminsdk-ga862-4a6ae3688a.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-})
 
 // middleware
 app.use(cors());
@@ -24,35 +16,19 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
-async function verifyToken(req, res, next){
-  const authHeader = req?.headers?.authorization
-  if(authHeader?.startsWith('Bearer ')){
-    const idToken = req.headers.authorization.split('Bearer ')[1];
-    try{
-      const decodeUser = await admin.auth().verifyIdToken(idToken)
-      req.decoded = decodeUser.email
-    }catch{
+// async function verifyToken(req, res, next){
+//   const authHeader = req?.headers?.authorization
+//   if(authHeader?.startsWith('Bearer ')){
+//     const idToken = req.headers.authorization.split('Bearer ')[1];
+//     try{
+//       const decodeUser = await admin.auth().verifyIdToken(idToken)
+//       req.decoded = decodeUser.email
+//     }catch{
 
-    }
-  }
-  next()
-}
-// function verifyJWT(req, res, next){
-//   const authHeader = req?.headers?.authorization;
-//   if(!authHeader){
-//     return res.status(401).send({message: 'unauthorized access'})
-//   }
-//   const idToken = authHeader.split(' ')[1];
-//   jwt.verify(idToken, process.env.ACCESS_TOKEN_SECRET,(err, decoded) =>{
-//     if(err){
-//       return res.status(403).send({message: 'Forbiden access'})
 //     }
-//     console.log('decoded', decoded);
-//   })
-//   // console.log('inside verifyJWT', authHeader);
-//   next();
+//   }
+//   next()
 // }
-
 async function run() {
     try {
       await client.connect();
@@ -161,14 +137,6 @@ app.post("/users", async (req, res) => {
   res.send(result);
 });
 
-  // // Login Post
-  // app.post("/login", async(req, res) =>{
-  //   const user = req.body
-  //   const accessToken =jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{
-  //     expiresIn: '1d'
-  //   });
-  //   res.send({accessToken})
-  // })
    // ADD Packages POST API
    app.post('/addPackage', async(req, res)=>{
       const service = req.body;
@@ -232,19 +200,6 @@ app.post("/users", async (req, res) => {
       const result = await ordersCollection.updateOne(filter, updateDoc)
       res.json(result)
     });
-
-// app.put("/orders/:email", async (req, res) =>{
-//   const email = req.params.email;
-//   const user = req.body;
-//   const filter = {email: email};
-//   const options = {upsert: true};
-//   const updateDoc = {
-//     $set: user,
-//   };
-//   const result = await ordersCollection.updateOne(filter, updateDoc, options);
-//   // const token = jwt.sign({email: email}, process.env.ACCESS_TOKEN_SECRET,{ expiresIn: '1h' })
-//   res.send({result, token})
-// });
 
 app.post("/create-payment-intent", async (req, res) => {
   const paymentInfo = req.body;
