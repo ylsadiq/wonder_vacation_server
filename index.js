@@ -102,12 +102,12 @@ app.get("/orders/:email", async (req, res) => {
 })
 // GET Users 
   app.get('/users', async (req, res)=>{
-    const users = req.body;
-    const result = await usersCollection.find({}).toArray();
+    const result = await usersCollection.find().toArray();
     res.send(result)
   });
-// Check User Admin
-  app.get('/users/:email', async(req, res) =>{
+
+// GET Users  Check User Admin
+  app.get('/admin/:email', async(req, res) =>{
     const email = req.params.email;
     const query = { email: email };
     const user = await usersCollection.findOne(query);
@@ -136,6 +136,12 @@ app.post("/users", async (req, res) => {
   const result = await usersCollection.insertOne(req.body);
   res.send(result);
 });
+// app.post('/users', async (req, res) => {
+//   const user = req.body;
+//   const result = await usersCollection.insertOne(user);
+//   console.log(result);
+//   res.json(result);
+// });
 
    // ADD Packages POST API
    app.post('/addPackage', async(req, res)=>{
@@ -159,6 +165,7 @@ app.post("/users", async (req, res) => {
       res.json(result);
     });
     
+
     app.put('/users/:email', async(req, res) =>{
       const email = req.params.email;
       const user = req.body;
@@ -168,25 +175,26 @@ app.post("/users", async (req, res) => {
         const result = await usersCollection.updateOne(filter, updateDoc, options);
         res.send(result)
     });
-
-    app.put('/users', async(req, res) =>{
+    // Make An Admin
+    app.put('/users/admin/:email', async(req, res) =>{
       const email = req.params.email;
-      const user = req.body;
       const filter = {email:email};
-      const options = {upsert: true};
-      const updateDoc = {$set: user};
-        const result = await usersCollection.updateOne(filter, updateDoc, options);
+      const updateDoc = {$set: { role: 'admin' }};
+        const result = await usersCollection.updateOne(filter, updateDoc);
         res.send(result)
     });
 
+
     // Make An Admin
-    app.put("/users/makeadmin", async (req, res) => {
-      const user = req.body;
-      const filter = {email: user.email};
-      const updateDoc = { $set: {role: 'admin'}};
-      const result = await usersCollection.updateOne(filter, updateDoc);
-      res.json(result);
-    });
+  //   app.put('/users/admin/:email', async (req, res) => {
+  //     const email = req.body.email;
+  //     const filter = { email: email };
+  //     console.log(filter);
+  //     const updateDoc = { $set: { role: 'admin' } };
+  //     const result = await usersCollection.updateOne(filter, updateDoc);
+  //     res.json(result);
+
+  // })
   // delete Packages
     app.put("/orders/:id", async (req, res) =>{
       const id = req.params.id;
@@ -201,6 +209,7 @@ app.post("/users", async (req, res) => {
       res.json(result)
     });
 
+// Payment Intent
 app.post("/create-payment-intent", async (req, res) => {
   const paymentInfo = req.body;
   const amount = paymentInfo.price * 100;
