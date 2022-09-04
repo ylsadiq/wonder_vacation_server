@@ -1,6 +1,5 @@
 const express = require('express');
-const { MongoClient, ServerApiVersion } = require('mongodb');
-const ObjectId = require('mongodb').ObjectId
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 // var jwt = require('jsonwebtoken');
 
@@ -36,7 +35,8 @@ async function run() {
       const packagesCollection = database.collection("packages");
       const ordersCollection = database.collection("order");
       const usersCollection = database.collection('user');
-      const transactionCollection = database.collection('payment')
+      const transactionCollection = database.collection('payment');
+      const usersReviewCollection = database.collection("reviews");
 
   // GET Packages API
     app.get('/packages', async(req, res) =>{
@@ -54,7 +54,6 @@ async function run() {
   });
   // GET Orders API
     app.get('/orders', async(req, res) =>{
-    const email = req.query;
     const cursor = ordersCollection.find({});
     const package = await cursor.toArray();
     res.json(package)
@@ -184,6 +183,18 @@ app.post("/users", async (req, res) => {
         res.send(result)
     });
 
+     // Add Users Review
+     app.post("/users/review", async (req, res) => {
+      const userReview = req.body;
+      const result = await usersReviewCollection.insertOne(userReview);
+      res.send(result);
+    });
+
+    // Get Users reviews
+    app.get("/users/review", async (req, res) => {
+      const result = await usersReviewCollection.find({}).toArray();
+      res.send(result);
+    });
 
     // Make An Admin
   //   app.put('/users/admin/:email', async (req, res) => {
