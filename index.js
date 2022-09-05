@@ -95,7 +95,8 @@ async function run() {
   //GET  My order
 app.get("/orders/:email", async (req, res) => {
   const email = req.params.email;
-  const query = {email: email};
+  const date = req.query.date;
+  const query = {email: email, date: date};
   const result = await ordersCollection.find(query).toArray();
   res.send(result);
 })
@@ -126,6 +127,7 @@ app.get("/orders/:email", async (req, res) => {
   // Order Post
   app.post("/orders", async(req, res) =>{
     const order = req.body;
+    // const query = {}
     const result = await ordersCollection.insertOne(order);
     res.send(result)
   })
@@ -223,6 +225,7 @@ app.post("/users", async (req, res) => {
 // Payment Intent
 app.post("/create-payment-intent", async (req, res) => {
   const paymentInfo = req.body;
+ if(paymentInfo?.price){
   const amount = paymentInfo.price * 100;
   // Create a PaymentIntent with the order amount and currency
   const paymentIntent = await stripe.paymentIntents.create({
@@ -231,6 +234,8 @@ app.post("/create-payment-intent", async (req, res) => {
     payment_method_types: ['card']
   });
   res.json({clientSecret: paymentIntent.client_secret});
+}
+  
 });
 
 } 
