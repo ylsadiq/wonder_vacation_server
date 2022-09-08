@@ -43,8 +43,8 @@ async function run() {
     const cursor = packagesCollection.find({});
     const packages = await cursor.toArray();
     res.send(packages);
-    
-      });
+    });
+
   // GET SINGLE product
     app.get('/packages/:id', async(req, res) =>{
     const id = req.params.id;
@@ -52,6 +52,27 @@ async function run() {
     const package = await packagesCollection.findOne(query);
     res.json(package)
   });
+
+  // ADD Packages POST API
+  app.post('/addPackage', async(req, res)=>{
+    const service = req.body;
+    const result = await packagesCollection.insertOne(service);
+    res.json(result)
+  });
+  app.delete("/packages/:id", async (req, res) => {
+    const id = req.params.id;
+    const query = { _id: ObjectId(id) };
+    const result = await packagesCollection.deleteOne(query);
+    res.json(result);
+  });
+
+  // Packages Post
+    app.post('/packages', async(req,res)=>{
+      const package = req.body;
+      const result = await packagesCollection.insertOne(package)
+      res.json(result)
+    });
+
   // GET Orders API
     app.get('/orders', async(req, res) =>{
     const cursor = ordersCollection.find({});
@@ -67,22 +88,33 @@ async function run() {
     res.json(result)
   })
 
-  app.patch('/paymentOrders/:id', async(req, res) =>{
-    const id = req.params.id;
-    const payment = req.body;
-    const filter = {_id: ObjectId(id)};
-    const updateDoc = {
-      $set: {
-        paid: true,
-        transactionId: payment.transactionId
-      }
-    }
-    const result = await transactionCollection.insertOne(payment)
-    const updatedBooking = await ordersCollection.updateOne(filter, updateDoc);
-    res.send(updatedBooking);
-
-  })
-    
+      // delete Order
+      app.delete("/orders/:id", async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: ObjectId(id) };
+        const result = await ordersCollection.deleteOne(query);
+        res.json(result);
+      });
+       // Order Post
+    app.post("/orders", async(req, res) =>{
+      const order = req.body;
+      console.log(order);
+      const result = await ordersCollection.insertOne(order);
+      res.send(result)
+    })
+       // delete Packages
+       app.put("/orders/:id", async (req, res) =>{
+        const id = req.params.id;
+        const payment = req.body;
+        const filter = {_id: ObjectId(id)};
+        const updateDoc = {
+          $set: {
+            payment: payment
+          },
+        };
+        const result = await ordersCollection.updateOne(filter, updateDoc)
+        res.json(result)
+      });    
   // GET Order API Email
   // app.get('/orders/:email', async(req, res)=>{
   //     const email = req.params.email;
@@ -106,83 +138,47 @@ app.get("/orders/:email", async (req, res) => {
     res.send(result)
   });
 
-// GET Users  Check User Admin
+// Delete Users
+app.delete('/users/:id', async(req, res) =>{
+  const id = req.params.id;
+  const query = { _id: ObjectId(id) };
+    const result = await usersCollection.deleteOne(query);
+    res.json(result);
+})
+
+// Check Users Admin
   app.get('/admin/:email', async(req, res) =>{
     const email = req.params.email;
     const query = { email: email };
-    const user = await usersCollection.findOne(query);
-    let isAdmin = false;
-      if (user?.role === "admin") {
-        isAdmin = true;
-      }
-      res.json({ admin: isAdmin });
+      const user = await usersCollection.findOne(query);
+      let isAdmin = false;
+        if (user?.role === "admin") {
+          isAdmin = true;
+        }
+        res.json({ admin: isAdmin });    
   });
-  
-  // Packages Post
-  app.post('/packages', async(req,res)=>{
-    const package = req.body;
-    const result = await packagesCollection.insertOne(package)
-    res.json(result)
-  });
-  // Order Post
-  app.post("/orders", async(req, res) =>{
-    const order = req.body;
-    // const query = {}
-    const result = await ordersCollection.insertOne(order);
-    res.send(result)
-  })
-
+ 
   // Add users
 app.post("/users", async (req, res) => {
   const result = await usersCollection.insertOne(req.body);
   res.send(result);
-});
-// app.post('/users', async (req, res) => {
-//   const user = req.body;
-//   const result = await usersCollection.insertOne(user);
-//   console.log(result);
-//   res.json(result);
-// });
-
-   // ADD Packages POST API
-   app.post('/addPackage', async(req, res)=>{
-      const service = req.body;
-      // create a document to insert
-      const result = await packagesCollection.insertOne(service);
-      // console.log(result);
-      res.json(result)
-    });
-    app.delete("/packages/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: ObjectId(id) };
-      const result = await packagesCollection.deleteOne(query);
-      res.json(result);
-    });
-    // delete Order
-    app.delete("/orders/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: ObjectId(id) };
-      const result = await ordersCollection.deleteOne(query);
-      res.json(result);
-    });
-    
-
+});    
     app.put('/users/:email', async(req, res) =>{
       const email = req.params.email;
-      const user = req.body;
-      const filter = {email:email};
-      const options = {upsert: true};
-      const updateDoc = {$set: user};
-        const result = await usersCollection.updateOne(filter, updateDoc, options);
-        res.send(result)
+        const user = req.body;
+        const filter = {email:email};
+        const options = {upsert: true};
+        const updateDoc = {$set: user};
+          const result = await usersCollection.updateOne(filter, updateDoc, options);
+          res.send(result)
     });
     // Make An Admin
     app.put('/users/admin/:email', async(req, res) =>{
       const email = req.params.email;
       const filter = {email:email};
       const updateDoc = {$set: { role: 'admin' }};
-        const result = await usersCollection.updateOne(filter, updateDoc);
-        res.send(result)
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result)
     });
 
      // Add Users Review
@@ -198,45 +194,33 @@ app.post("/users", async (req, res) => {
       res.send(result);
     });
 
-    // Make An Admin
-  //   app.put('/users/admin/:email', async (req, res) => {
-  //     const email = req.body.email;
-  //     const filter = { email: email };
-  //     console.log(filter);
-  //     const updateDoc = { $set: { role: 'admin' } };
-  //     const result = await usersCollection.updateOne(filter, updateDoc);
-  //     res.json(result);
-
-  // })
-  // delete Packages
-    app.put("/orders/:id", async (req, res) =>{
+    app.patch('/paymentOrders/:id', async(req, res) =>{
       const id = req.params.id;
       const payment = req.body;
       const filter = {_id: ObjectId(id)};
       const updateDoc = {
         $set: {
-          payment: payment
-        },
-      };
-      const result = await ordersCollection.updateOne(filter, updateDoc)
-      res.json(result)
+          paid: true,
+          transactionId: payment.transactionId
+        }
+      }
+      const result = await transactionCollection.insertOne(payment)
+      const updatedBooking = await ordersCollection.updateOne(filter, updateDoc);
+      res.send(updatedBooking);
     });
-
+ 
 // Payment Intent
 app.post("/create-payment-intent", async (req, res) => {
   const paymentInfo = req.body;
  if(paymentInfo?.price){
   const amount = paymentInfo.price * 100;
-  // Create a PaymentIntent with the order amount and currency
   const paymentIntent = await stripe.paymentIntents.create({
     currency: "usd",
     amount: amount,
     payment_method_types: ['card']
   });
   res.json({clientSecret: paymentIntent.client_secret});
-}
-  
-});
+}});
 
 } 
   finally {
