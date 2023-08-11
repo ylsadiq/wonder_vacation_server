@@ -182,14 +182,14 @@ app.post("/users", async (req, res) => {
     });
 
      // Add Users Review
-     app.post("/users/review", async (req, res) => {
+     app.post("/review", async (req, res) => {
       const userReview = req.body;
       const result = await usersReviewCollection.insertOne(userReview);
       res.send(result);
     });
 
     // Get Users reviews
-    app.get("/users/review", async (req, res) => {
+    app.get("/review", async (req, res) => {
       const result = await usersReviewCollection.find({}).toArray();
       res.send(result);
     });
